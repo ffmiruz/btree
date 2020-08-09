@@ -1,0 +1,23 @@
+
+1. all leaf node at the same level.
+2. all non-leaf node (except root) have at least m/2 child at most m child.
+3. number of keys/elements one less from number of children for non-leaf nodes.
+	at least m/2 for leaf nodes, at most m-1
+4. The root may have as few as 2 children unless the tree is the root alone.
+
+m=5
+
+1. =
+2. All non‐leaf nodes (except the root) have at least 2 children and at most 5.
+3. The number of keys is one less than the number of children for non‐leaf nodes
+	at least 2 for leaf nodes, at most 4.    
+4. The root may have as few as 2 children unless the tree is the root alone.
+
+http://maf.directory/btp/algo.html
+Every B-tree is of some "order n", meaning nodes contain from n to 2n keys, and nodes are thereby always at least half full of keys. Keys are kept in sorted order within each node. A corresponding list of pointers are effectively interspersed between keys to indicate where to search for a key if it isn't in the current node. A node containing k keys always also contains k+1 pointers.
+
+https://github.com/delimitry/btree/blob/master/btree.go
+https://scanftree.com/Data_Structure/creation-of-b-tree
+
+
+https://github.com/golang/tour/blob/master/tree/tree.go
