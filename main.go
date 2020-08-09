@@ -18,11 +18,12 @@ type btree struct {
 const order int = 5
 
 func main() {
-	numbers := []int{1, 2, 3, 4, 5, 6, 7}
+	numbers := []int{1, 2, 3, 4, 5}
 	var tree btree
 	for _, value := range numbers {
 		tree.Insert(value)
 	}
+	fmt.Println("root:", tree.root)
 
 }
 
@@ -35,13 +36,33 @@ func (t *btree) Insert(value int) {
 			leaf:  true,
 		}
 		t.root.keys = append(t.root.keys, value)
+
 		return
 	}
-	t.root.Insert(value)
+	new, promoted := t.root.Insert(value)
+	fmt.Println("promo: ", promoted)
+	if new != nil {
+		t.root.leaf = false
+
+		pos := sort.SearchInts(t.root.keys, promoted)
+
+		t.root.keys = append(t.root.keys, 0)
+		copy(t.root.keys[pos+1:], t.root.keys[pos:])
+		t.root.keys[pos] = promoted
+
+		fmt.Println(t.root.keys, t.root.child, "new keys")
+
+		// posn := pos + 1
+		// var empty node
+		// t.root.child = append(t.root.child, &empty)
+		// copy(t.root.child[posn+1:], t.root.child[posn:])
+		// t.root.child[posn] = new
+
+	}
 }
 
 // insert adds the value into the tree.
-func (n *node) Insert(value int) {
+func (n *node) Insert(value int) (*node, int) {
 	pos := sort.SearchInts(n.keys, value)
 	if n.leaf {
 
@@ -50,13 +71,53 @@ func (n *node) Insert(value int) {
 		copy(n.keys[pos+1:], n.keys[pos:])
 		n.keys[pos] = value
 
-		fmt.Println(n.keys)
-		// if len(n.keys) == order {
-		// 	n.split()
-		// }
-		return
+		if len(n.keys) == order {
+			mid := order / 2
+			promoted := n.keys[mid]
+
+			rnode := &node{keys: make([]int, mid, order),
+				child: make([]*node, 0, order),
+				leaf:  true,
+			}
+			copy(rnode.keys, n.keys[mid+1:])
+
+			n.keys = n.keys[:mid]
+
+			fmt.Println(n.keys, rnode.keys, "xxxx")
+
+			return rnode, promoted
+
+		}
+		return nil, 0
 	}
-	n.child[pos].Insert(value)
+	new, promoted := n.child[pos].Insert(value)
+	fmt.Println(n.keys, "bbbbb")
+
+	if new != nil {
+		if len(n.child) < 1 {
+			newTop := &node{keys: make([]int, 1, order),
+				child: make([]*node, 2, order),
+				leaf:  false,
+			}
+			newTop.keys[0] = promoted
+			newTop.child = append(newTop.child, n)
+			newTop.child = append(newTop.child, new)
+		}
+		n.leaf = false
+
+		posn := pos + 1
+
+		n.keys = append(n.keys, 0)
+		copy(n.keys[pos+1:], n.keys[pos:])
+		n.keys[pos] = promoted
+
+		var empty node
+		n.child = append(n.child, &empty)
+		copy(n.child[posn+1:], n.child[posn:])
+		n.child[posn] = new
+	}
+
+	return nil, 0
 
 	// if len(n.keys) < order && n.leaf {
 	// 	n.keys = append(n.keys, value)
