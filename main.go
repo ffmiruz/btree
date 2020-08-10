@@ -24,8 +24,8 @@ func main() {
 		tree.Insert(value)
 		fmt.Println("root:", tree.root.keys)
 	}
-	fmt.Println(tree.root.keys, tree.root.child[0].keys, tree.root.child[1].keys,
-		tree.root.child[1].child[0].keys, tree.root.child[1].child[1].keys)
+	fmt.Println(tree.root.keys, tree.root.child[0].keys,
+		tree.root.child[1].keys, tree.root.child[2].keys)
 
 }
 
@@ -40,11 +40,22 @@ func (t *btree) Insert(value int) {
 		t.root.keys = append(t.root.keys, value)
 		return
 	}
-	t.root.Insert(value)
+	v, ch := t.root.Insert(value)
+	if ch != nil {
+		newRoot := &node{keys: make([]int, 0, order),
+			child: make([]*node, 0, order),
+			leaf:  false,
+		}
+		newRoot.keys = append(newRoot.keys, v)
+		newRoot.child = append(newRoot.child, t.root)
+		newRoot.child = append(newRoot.child, ch)
+
+		t.root = newRoot
+	}
 }
 
 // Insert adds a value into the tree.
-func (n *node) Insert(value int) {
+func (n *node) Insert(value int) (int, *node) {
 	pos := sort.SearchInts(n.keys, value)
 
 	if n.leaf {
@@ -63,22 +74,15 @@ func (n *node) Insert(value int) {
 			copy(rnode.keys, n.keys[mid+1:])
 			n.keys = n.keys[:mid]
 
-			top := &node{keys: make([]int, 0, order),
-				child: make([]*node, 0, order),
-				leaf:  false,
-			}
-			top.keys = append(top.keys, promoted)
-			nn := *n
-			top.child = append(top.child, &nn)
-			top.child = append(top.child, rnode)
-			*n = *top
-
-			fmt.Println(top.keys, nn.keys, rnode.keys)
-			return
+			return promoted, rnode
 		}
-		return
+		return 0, nil
 	}
-
-	n.child[pos].Insert(value)
+	v, ch := n.child[pos].Insert(value)
+	if ch != nil {
+		n.child = append(n.child, ch)
+		n.keys = append(n.keys, v)
+	}
+	return 0, nil
 
 }
