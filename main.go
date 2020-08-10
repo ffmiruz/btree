@@ -33,7 +33,6 @@ func main() {
 		tree.Insert(value)
 	}
 	tree.root.print()
-
 }
 
 // Insert adds a value into the tree.
@@ -90,12 +89,20 @@ func (n *node) Insert(value int) (int, *node) {
 		}
 		return 0, nil
 	}
-	k, ch := n.child[pos].Insert(value)
+	k, c := n.child[pos].Insert(value)
 
-	// Todo: This should fail for out of order insert
-	if ch != nil {
-		n.child = append(n.child, ch)
-		n.keys = append(n.keys, k)
+	// Place returned values into node
+	if c != nil {
+		n.keys = append(n.keys, 0)
+		copy(n.keys[pos+1:], n.keys[pos:])
+		n.keys[pos] = k
+
+		// Account for expansion due to new key; update new child insert
+		// position by 1 to the right.
+		posc := pos + 1
+		n.child = append(n.child, c)
+		copy(n.child[posc+1:], n.child[posc:])
+		n.child[posc] = c
 	}
 
 	if len(n.keys) == order {
