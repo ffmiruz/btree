@@ -1,3 +1,11 @@
+// B-tree implementation.
+// With m as tree order, satisfy the followings:
+// 1. all leaf nodes are at the same level.
+// 2. all non-leaf nodes (except root) have at least m/2 child at most m child.
+// 3. number of keys is one less from the number of children for non-leaf nodes.
+// 	  at least m/2 for leaf nodes, at most m-1
+// 4. The root may have as few as 2 children unless the tree is the root alone.
+//
 package main
 
 import (
@@ -26,19 +34,12 @@ func main() {
 	}
 	tree.root.print()
 
-	// fmt.Println(tree.root.child[0].keys, tree.root.child[1].keys)
-	// fmt.Println(tree.root.child[0].child[0].keys,
-	// 	tree.root.child[0].child[1].keys, //tree.root.child[0].child[2].keys,
-	// 	tree.root.child[1].child[0].keys, tree.root.child[1].child[1].keys,
-	// 	tree.root.child[1].child[2].keys,
-	// )
-
 }
 
 // Insert adds a value into the tree.
 func (t *btree) Insert(value int) {
 	if t.root == nil {
-		// cap order to leave room before checking for overflow
+		// Cap == order to leave room before checking for overflow
 		t.root = &node{keys: make([]int, 0, order),
 			child: make([]*node, 0, order),
 			leaf:  true,
@@ -46,22 +47,26 @@ func (t *btree) Insert(value int) {
 		t.root.keys = append(t.root.keys, value)
 		return
 	}
-	v, ch := t.root.Insert(value)
+	k, ch := t.root.Insert(value)
+
+	// Handle root overflow case.
+	// Create a single key node from promoted key to be a new root.
+	// Previous root as left child, promoted node as right child.
 	if ch != nil {
 		newRoot := &node{keys: make([]int, 0, order),
 			child: make([]*node, 0, order),
 			leaf:  false,
 		}
-		newRoot.keys = append(newRoot.keys, v)
+		newRoot.keys = append(newRoot.keys, k)
 		newRoot.child = append(newRoot.child, t.root)
 		newRoot.child = append(newRoot.child, ch)
-
 		t.root = newRoot
 	}
 }
 
-// Insert adds a value into the tree.
+// Insert adds a value into the node.
 func (n *node) Insert(value int) (int, *node) {
+	// Find the position to insert the value or the child to follow
 	pos := sort.SearchInts(n.keys, value)
 
 	if n.leaf {
@@ -69,10 +74,12 @@ func (n *node) Insert(value int) (int, *node) {
 		copy(n.keys[pos+1:], n.keys[pos:])
 		n.keys[pos] = value
 
+		// Split the node
 		if len(n.keys) == order {
 			mid := order / 2
 			promoted := n.keys[mid]
 
+			// Will be the right child node of the promoted key
 			rnode := &node{keys: make([]int, mid, order),
 				child: make([]*node, 0, order),
 				leaf:  true,
@@ -83,10 +90,12 @@ func (n *node) Insert(value int) (int, *node) {
 		}
 		return 0, nil
 	}
-	v, ch := n.child[pos].Insert(value)
+	k, ch := n.child[pos].Insert(value)
+
+	// Todo: This should fail for out of order insert
 	if ch != nil {
 		n.child = append(n.child, ch)
-		n.keys = append(n.keys, v)
+		n.keys = append(n.keys, k)
 	}
 
 	if len(n.keys) == order {
@@ -98,26 +107,25 @@ func (n *node) Insert(value int) (int, *node) {
 			leaf:  false,
 		}
 		copy(rnode.keys, n.keys[mid+1:])
-		fmt.Println("--", n.keys)
-		fmt.Println(">>", n.child[2].keys)
 		n.keys = n.keys[:mid]
 
-		// deal with child
+		// Deal with child
 		rnode.child = n.child[mid+1:]
-		// prevent dropping rightmost child
+		//// Prevent dropping rightmost child
 		n.child = n.child[:mid+1]
-		fmt.Println("---", n.keys, rnode.keys)
 
 		return promoted, rnode
 	}
-
 	return 0, nil
-
 }
 
+// Ugly print
 func (n *node) print() {
 	fmt.Println(n.keys)
 	for i := range n.child {
 		n.child[i].print()
 	}
 }
+
+// Todo:
+// Handle duplicate key case

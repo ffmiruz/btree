@@ -1,7 +1,7 @@
 
-1. all leaf node at the same level.
-2. all non-leaf node (except root) have at least m/2 child at most m child.
-3. number of keys/elements one less from number of children for non-leaf nodes.
+1. all leaf nodes are at the same level.
+2. all non-leaf nodes (except root) have at least m/2 child at most m child.
+3. number of keys is one less from the number of children for non-leaf nodes.
 	at least m/2 for leaf nodes, at most m-1
 4. The root may have as few as 2 children unless the tree is the root alone.
 
