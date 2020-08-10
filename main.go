@@ -14,7 +14,7 @@ import (
 )
 
 type node struct {
-	keys  []int
+	key   []int
 	child []*node
 	leaf  bool
 }
@@ -39,26 +39,26 @@ func main() {
 func (t *btree) Insert(value int) {
 	if t.root == nil {
 		// Cap == order to leave room before checking for overflow
-		t.root = &node{keys: make([]int, 0, order),
+		t.root = &node{key: make([]int, 0, order),
 			child: make([]*node, 0, order),
 			leaf:  true,
 		}
-		t.root.keys = append(t.root.keys, value)
+		t.root.key = append(t.root.key, value)
 		return
 	}
-	k, ch := t.root.Insert(value)
+	k, c := t.root.Insert(value)
 
 	// Handle root overflow case.
 	// Create a single key node from promoted key to be a new root.
 	// Previous root as left child, promoted node as right child.
-	if ch != nil {
-		newRoot := &node{keys: make([]int, 0, order),
+	if c != nil {
+		newRoot := &node{key: make([]int, 0, order),
 			child: make([]*node, 0, order),
 			leaf:  false,
 		}
-		newRoot.keys = append(newRoot.keys, k)
+		newRoot.key = append(newRoot.key, k)
 		newRoot.child = append(newRoot.child, t.root)
-		newRoot.child = append(newRoot.child, ch)
+		newRoot.child = append(newRoot.child, c)
 		t.root = newRoot
 	}
 }
@@ -66,25 +66,25 @@ func (t *btree) Insert(value int) {
 // Insert adds a value into the node.
 func (n *node) Insert(value int) (int, *node) {
 	// Find the position to insert the value or the child to follow
-	pos := sort.SearchInts(n.keys, value)
+	pos := sort.SearchInts(n.key, value)
 
 	if n.leaf {
-		n.keys = append(n.keys, 0)
-		copy(n.keys[pos+1:], n.keys[pos:])
-		n.keys[pos] = value
+		n.key = append(n.key, 0)
+		copy(n.key[pos+1:], n.key[pos:])
+		n.key[pos] = value
 
 		// Split the node
-		if len(n.keys) == order {
+		if len(n.key) == order {
 			mid := order / 2
-			promoted := n.keys[mid]
+			promoted := n.key[mid]
 
 			// Will be the right child node of the promoted key
-			rnode := &node{keys: make([]int, mid, order),
+			rnode := &node{key: make([]int, mid, order),
 				child: make([]*node, 0, order),
 				leaf:  true,
 			}
-			copy(rnode.keys, n.keys[mid+1:])
-			n.keys = n.keys[:mid]
+			copy(rnode.key, n.key[mid+1:])
+			n.key = n.key[:mid]
 			return promoted, rnode
 		}
 		return 0, nil
@@ -93,9 +93,9 @@ func (n *node) Insert(value int) (int, *node) {
 
 	// Place returned values into node
 	if c != nil {
-		n.keys = append(n.keys, 0)
-		copy(n.keys[pos+1:], n.keys[pos:])
-		n.keys[pos] = k
+		n.key = append(n.key, 0)
+		copy(n.key[pos+1:], n.key[pos:])
+		n.key[pos] = k
 
 		// Account for expansion due to new key; update new child insert
 		// position by 1 to the right.
@@ -105,16 +105,16 @@ func (n *node) Insert(value int) (int, *node) {
 		n.child[posc] = c
 	}
 
-	if len(n.keys) == order {
+	if len(n.key) == order {
 		mid := order / 2
-		promoted := n.keys[mid]
+		promoted := n.key[mid]
 
-		rnode := &node{keys: make([]int, mid, order),
+		rnode := &node{key: make([]int, mid, order),
 			child: make([]*node, 0, order),
 			leaf:  false,
 		}
-		copy(rnode.keys, n.keys[mid+1:])
-		n.keys = n.keys[:mid]
+		copy(rnode.key, n.key[mid+1:])
+		n.key = n.key[:mid]
 
 		// Deal with child
 		rnode.child = n.child[mid+1:]
@@ -128,7 +128,7 @@ func (n *node) Insert(value int) (int, *node) {
 
 // Ugly print
 func (n *node) print() {
-	fmt.Println(n.keys)
+	fmt.Println(n.key)
 	for i := range n.child {
 		n.child[i].print()
 	}
