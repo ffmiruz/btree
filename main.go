@@ -24,7 +24,6 @@ func main() {
 	for _, value := range numbers {
 		tree.Insert(value)
 	}
-	//fmt.Println(tree.root.keys)
 	tree.root.print()
 
 	// fmt.Println(tree.root.child[0].keys, tree.root.child[1].keys)
@@ -100,11 +99,13 @@ func (n *node) Insert(value int) (int, *node) {
 		}
 		copy(rnode.keys, n.keys[mid+1:])
 		fmt.Println("--", n.keys)
+		fmt.Println(">>", n.child[2].keys)
 		n.keys = n.keys[:mid]
 
-		//deal with child
+		// deal with child
 		rnode.child = n.child[mid+1:]
-		n.child = n.child[:mid]
+		// prevent dropping rightmost child
+		n.child = n.child[:mid+1]
 		fmt.Println("---", n.keys, rnode.keys)
 
 		return promoted, rnode
