@@ -83,7 +83,7 @@ func (n *node) Insert(value int) (int, *node) {
 				child: make([]*node, 0, order),
 				leaf:  true,
 			}
-			copy(rnode.key, n.key[mid+1:])
+			rnode.key = n.key[mid+1:]
 			n.key = n.key[:mid]
 			return promoted, rnode
 		}
@@ -113,7 +113,7 @@ func (n *node) Insert(value int) (int, *node) {
 			child: make([]*node, 0, order),
 			leaf:  false,
 		}
-		copy(rnode.key, n.key[mid+1:])
+		rnode.key = n.key[mid+1:]
 		n.key = n.key[:mid]
 
 		// Deal with child
