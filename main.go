@@ -13,14 +13,14 @@ import (
 	"sort"
 )
 
+type Btree struct {
+	Root *node
+}
+
 type node struct {
 	key   []int
 	child []*node
 	leaf  bool
-}
-
-type btree struct {
-	root *node
 }
 
 const order int = 5
@@ -28,47 +28,49 @@ const order int = 5
 func main() {
 	numbers := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 		12, 13, 14, 15, 16, 17}
-	var tree btree
+	var tree Btree
 	for _, value := range numbers {
 		tree.Insert(value)
 	}
-	tree.root.print()
+	tree.Root.Print()
 }
 
 // Insert adds a value into the tree.
-func (t *btree) Insert(value int) {
-	if t.root == nil {
+func (t *Btree) Insert(value int) {
+	if t.Root == nil {
 		// Cap == order to leave room before checking for overflow
-		t.root = &node{key: make([]int, 0, order),
+		t.Root = &node{key: make([]int, 0, order),
 			child: make([]*node, 0, order),
 			leaf:  true,
 		}
-		t.root.key = append(t.root.key, value)
+		t.Root.key = append(t.Root.key, value)
 		return
 	}
-	k, c := t.root.Insert(value)
+	k, c := t.Root.insert(value)
 
-	// Handle root overflow case.
-	// Create a single key node from promoted key to be a new root.
-	// Previous root as left child, promoted node as right child.
+	// Handle Root overflow case.
+	// Create a single key node from promoted key to be a new Root.
+	// Previous Root as left child, promoted node as right child.
 	if c != nil {
 		newRoot := &node{key: make([]int, 0, order),
 			child: make([]*node, 0, order),
 			leaf:  false,
 		}
 		newRoot.key = append(newRoot.key, k)
-		newRoot.child = append(newRoot.child, t.root)
+		newRoot.child = append(newRoot.child, t.Root)
 		newRoot.child = append(newRoot.child, c)
-		t.root = newRoot
+		t.Root = newRoot
 	}
 }
 
 // Insert adds a value into the node.
-func (n *node) Insert(value int) (int, *node) {
+func (n *node) insert(value int) (int, *node) {
 	// Find the position to insert the value or the child to follow
 	pos := sort.SearchInts(n.key, value)
 
 	if n.leaf {
+		// Slot value into corrent position.
+		// From https://github.com/golang/go/wiki/SliceTricks#insert
 		n.key = append(n.key, 0)
 		copy(n.key[pos+1:], n.key[pos:])
 		n.key[pos] = value
@@ -80,8 +82,7 @@ func (n *node) Insert(value int) (int, *node) {
 
 			// Will be the right child node of the promoted key
 			rnode := &node{key: make([]int, mid, order),
-				child: make([]*node, 0, order),
-				leaf:  true,
+				leaf: true,
 			}
 			rnode.key = n.key[mid+1:]
 			n.key = n.key[:mid]
@@ -89,7 +90,7 @@ func (n *node) Insert(value int) (int, *node) {
 		}
 		return 0, nil
 	}
-	k, c := n.child[pos].Insert(value)
+	k, c := n.child[pos].insert(value)
 
 	// Place returned values into node
 	if c != nil {
@@ -105,18 +106,17 @@ func (n *node) Insert(value int) (int, *node) {
 		n.child[posc] = c
 	}
 
+	// Split the node
 	if len(n.key) == order {
 		mid := order / 2
 		promoted := n.key[mid]
 
 		rnode := &node{key: make([]int, mid, order),
-			child: make([]*node, 0, order),
-			leaf:  false,
+			leaf: false,
 		}
 		rnode.key = n.key[mid+1:]
 		n.key = n.key[:mid]
 
-		// Deal with child
 		rnode.child = n.child[mid+1:]
 		//// Prevent dropping rightmost child
 		n.child = n.child[:mid+1]
@@ -127,10 +127,10 @@ func (n *node) Insert(value int) (int, *node) {
 }
 
 // Ugly print
-func (n *node) print() {
-	fmt.Println(n.key)
+func (n *node) Print() {
+	fmt.Println(n.key, n.leaf, len(n.child))
 	for i := range n.child {
-		n.child[i].print()
+		n.child[i].Print()
 	}
 }
 
