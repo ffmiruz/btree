@@ -10,7 +10,6 @@ package main
 
 import (
 	"fmt"
-	"sort"
 )
 
 type Btree struct {
@@ -39,7 +38,7 @@ func main() {
 func (t *Btree) Insert(value int) {
 	if t.Root == nil {
 		// Cap == order to leave room before checking for overflow
-		t.Root = &node{key: make([]int, 0, order),
+		t.Root = &node{key: make([]int, 0, order+10),
 			child: make([]*node, 0, order),
 			leaf:  true,
 		}
@@ -66,7 +65,7 @@ func (t *Btree) Insert(value int) {
 // Insert adds a value into the node.
 func (n *node) insert(value int) (int, *node) {
 	// Find the position to insert the value or the child to follow
-	pos := sort.SearchInts(n.key, value)
+	pos := cutMark(n.key, value)
 
 	if n.leaf {
 		// Slot value into corrent position.
@@ -134,5 +133,16 @@ func (n *node) Print() {
 	}
 }
 
-// Todo:
-// Handle duplicate key case
+// Search position to insert an integer into an ascending order sorted slice.
+// For this implementation, duplicate value will slot behind existing value.
+func cutMark(sorted []int, v int) int {
+	pos := 0
+	for i := range sorted {
+		if v > sorted[i] {
+			pos = i + 1
+			continue
+		}
+		break
+	}
+	return pos
+}
