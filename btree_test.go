@@ -5,19 +5,6 @@ import (
 	"testing"
 )
 
-// func TestSelectionSort(t *testing.T) {
-// 	got := generateList(1e2)
-// 	want := make([]int, 1e2)
-// 	copy(want, got)
-
-// 	sort.Ints(want)
-// 	selectionSort(got)
-
-// 	if !reflect.DeepEqual(want, got) {
-// 		t.Fatalf("expected: %v, got: %v", want, got)
-// 	}
-// }
-
 func BenchmarkConstructTree100(b *testing.B) {
 	b.ReportAllocs()
 
